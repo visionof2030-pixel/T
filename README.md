@@ -2,17 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>اختبار تجريبي</title>
+<title>اختبار تجريبي مع اسم الطالب وفصله</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 <style>
 body { font-family: Arial; padding: 20px; }
 button { padding: 10px 15px; font-size: 16px; }
+input, select { padding: 8px; font-size: 16px; margin-bottom: 10px; width: 100%; }
 </style>
 </head>
 
 <body>
 <h2>اختبار تجريبي (سؤالين فقط)</h2>
 
+<!-- بيانات الطالب -->
+<div>
+<label>اسم الطالب:</label>
+<input type="text" id="studentName" placeholder="أدخل اسمك هنا">
+
+<label>الفصل:</label>
+<input type="text" id="studentClass" placeholder="أدخل الفصل هنا">
+</div>
+
+<!-- الأسئلة -->
 <div>
 <p>1. من هو مخترع المصباح الكهربائي؟</p>
 <label><input type="radio" name="q1" value="wrong"> نيكولا تسلا</label><br>
@@ -43,6 +54,13 @@ const SECRET = "TeacherFahad1406";
 const TARGET = "966533527240"; // رقمك
 
 function sendResult() {
+    const studentName = document.getElementById("studentName").value.trim();
+    const studentClass = document.getElementById("studentClass").value.trim();
+
+    if (!studentName || !studentClass) {
+        alert("الرجاء إدخال اسمك والفصل قبل الإرسال.");
+        return;
+    }
 
     let score = 0;
     let weaknesses = [];
@@ -67,7 +85,9 @@ function sendResult() {
 
     // الملخص
     let summary =
-`النتيجة النهائية: ${score} من 2
+`اسم الطالب: ${studentName}
+الفصل: ${studentClass}
+الدرجة النهائية: ${score} من 2
 نقاط الضعف:
 ${weaknesses.length === 0 ? "لا يوجد" : weaknesses.join("\n")}
 `;
