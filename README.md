@@ -336,6 +336,15 @@
       box-shadow: 0 0 20px rgba(231, 76, 60, 0.2);
     }
     
+    .admin-btn.success {
+      background: linear-gradient(135deg, var(--success), #27ae60);
+      color: white;
+    }
+    
+    .admin-btn.success:hover {
+      box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+    }
+    
     .share-all-container {
       display: none;
       gap: 10px;
@@ -390,6 +399,82 @@
     }
     
     .share-all-btn:active { transform: scale(0.97); }
+
+    /* إعدادات الـ API في لوحة التحكم */
+    .api-settings {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-top: 8px;
+      width: 100%;
+    }
+    
+    .api-settings.visible {
+      display: flex;
+    }
+    
+    .api-settings .api-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .api-settings .api-row label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      min-width: 120px;
+    }
+    
+    .api-settings .api-row input {
+      flex: 1;
+      padding: 8px 14px;
+      border-radius: 40px;
+      border: 2px solid var(--border-color);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      outline: none;
+      transition: var(--transition);
+      font-family: inherit;
+      min-width: 150px;
+      direction: ltr;
+    }
+    
+    .api-settings .api-row input:focus {
+      border-color: var(--gold);
+      background: rgba(240, 180, 41, 0.04);
+    }
+    
+    .api-settings .api-row input::placeholder {
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      direction: rtl;
+    }
+    
+    .api-settings .api-status {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    
+    .api-settings .api-status .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .api-settings .api-status .dot.on { background: var(--success); }
+    .api-settings .api-status .dot.off { background: var(--danger); }
     
     .password-overlay {
       display: none;
@@ -1795,6 +1880,8 @@
       .share-all-btn { width: 100%; justify-content: center; }
       .admin-controls { flex-direction: column; text-align: center; padding: 12px; }
       .admin-btn { width: 100%; justify-content: center; }
+      .api-settings .api-row { flex-direction: column; align-items: stretch; }
+      .api-settings .api-row label { min-width: auto; }
       .tabs-container { flex-direction: column; align-items: stretch; }
       .tabs { justify-content: center; }
       .day-filter-tabs { justify-content: center; }
@@ -1935,12 +2022,28 @@
       <span class="badge-admin">👑 مدير</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="admin-btn" id="toggleCompactBtn" onclick="toggleCompactMode()">
-        📐 تصغير للتصوير
-      </button>
-      <button class="admin-btn danger" onclick="resetCompactMode()">
-        🔄 إعادة الحجم الطبيعي
-      </button>
+      <button class="admin-btn" onclick="toggleApiSettings()">🔑 إعدادات API</button>
+      <button class="admin-btn" onclick="toggleCompactMode()">📐 تصغير للتصوير</button>
+      <button class="admin-btn danger" onclick="resetCompactMode()">🔄 إعادة الحجم الطبيعي</button>
+    </div>
+    
+    <!-- إعدادات الـ API -->
+    <div class="api-settings" id="apiSettings">
+      <div class="api-row">
+        <label>🔑 API-Football</label>
+        <input type="password" id="apiFootballKey" placeholder="أدخل مفتاح API-Football" dir="ltr">
+        <button class="admin-btn success" onclick="saveApiKey('football')" style="padding:6px 16px;font-size:0.7rem;">💾 حفظ</button>
+      </div>
+      <div class="api-row">
+        <label>🔑 Football-Data</label>
+        <input type="password" id="apiFootballDataKey" placeholder="أدخل مفتاح Football-Data.org" dir="ltr">
+        <button class="admin-btn success" onclick="saveApiKey('footballData')" style="padding:6px 16px;font-size:0.7rem;">💾 حفظ</button>
+      </div>
+      <div class="api-status">
+        <span>📡 حالة API-Football: <span id="apiFootballStatus"><span class="dot off"></span> غير مفعل</span></span>
+        <span style="margin-right:16px;">📡 حالة Football-Data: <span id="apiFootballDataStatus"><span class="dot off"></span> غير مفعل</span></span>
+        <button class="admin-btn" onclick="testApis()" style="padding:4px 14px;font-size:0.65rem;">🧪 اختبار الاتصال</button>
+      </div>
     </div>
   </div>
   
@@ -2116,86 +2219,201 @@
   // ============================================================
   //  تكوين API-Football و Football-Data.org
   // ============================================================
-  // ملاحظة: هذه مفاتيح مجانية مع حدود استخدام
-  // يمكنك الحصول على مفتاح مجاني من:
-  // - API-Football: https://dashboard.api-football.com/register
-  // - Football-Data.org: https://www.football-data.org/client/register
+  // المفاتيح تُقرأ من localStorage بعد إدخالها من المدير
   
-  const FOOTBALL_API_KEY = "YOUR_API_FOOTBALL_KEY"; // استبدل بمفتاحك المجاني
-  const FOOTBALL_DATA_KEY = "YOUR_FOOTBALL_DATA_KEY"; // استبدل بمفتاحك المجاني
+  function getApiKey(type) {
+    const key = localStorage.getItem(`api_key_${type}`);
+    return key || '';
+  }
   
-  const SUPABASE_URL = "https://szjxwhsmefqpfcebtvei.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_0um28lgPMHcjDOThT0UgDA_K-Y7Wmx3";
+  function getFootballApiKey() {
+    return getApiKey('football') || '';
+  }
   
-  let supabaseClient;
-  try {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("✅ Supabase متصل");
-  } catch (e) {
-    console.error("❌ Supabase فشل:", e);
-    supabaseClient = null;
+  function getFootballDataKey() {
+    return getApiKey('footballData') || '';
   }
   
   // ============================================================
-  //  نظام كلمة السر
+  //  إعدادات الـ API في لوحة التحكم
   // ============================================================
-  const SECRET_CODE = "1406";
-  let isAuthorized = false;
-  let isCompactMode = false;
-  let isModalCompact = false;
+  function toggleApiSettings() {
+    const settings = document.getElementById('apiSettings');
+    settings.classList.toggle('visible');
+    
+    if (settings.classList.contains('visible')) {
+      // عرض المفاتيح المخزنة
+      document.getElementById('apiFootballKey').value = getFootballApiKey();
+      document.getElementById('apiFootballDataKey').value = getFootballDataKey();
+      updateApiStatus();
+    }
+  }
+  
+  function saveApiKey(type) {
+    let input, keyName;
+    if (type === 'football') {
+      input = document.getElementById('apiFootballKey');
+      keyName = 'api_key_football';
+    } else {
+      input = document.getElementById('apiFootballDataKey');
+      keyName = 'api_key_footballData';
+    }
+    
+    const key = input.value.trim();
+    if (!key) {
+      showCopyToast('⚠️ الرجاء إدخال مفتاح صالح');
+      return;
+    }
+    
+    localStorage.setItem(keyName, key);
+    showCopyToast(`✅ تم حفظ مفتاح ${type === 'football' ? 'API-Football' : 'Football-Data'}`);
+    updateApiStatus();
+  }
+  
+  function updateApiStatus() {
+    const footballKey = getFootballApiKey();
+    const footballDataKey = getFootballDataKey();
+    
+    const footballStatus = document.getElementById('apiFootballStatus');
+    const footballDataStatus = document.getElementById('apiFootballDataStatus');
+    
+    if (footballKey) {
+      footballStatus.innerHTML = '<span class="dot on"></span> مفعل';
+    } else {
+      footballStatus.innerHTML = '<span class="dot off"></span> غير مفعل';
+    }
+    
+    if (footballDataKey) {
+      footballDataStatus.innerHTML = '<span class="dot on"></span> مفعل';
+    } else {
+      footballDataStatus.innerHTML = '<span class="dot off"></span> غير مفعل';
+    }
+  }
+  
+  async function testApis() {
+    showCopyToast('🧪 جاري اختبار الاتصال...');
+    
+    const footballKey = getFootballApiKey();
+    const footballDataKey = getFootballDataKey();
+    let footballOk = false;
+    let footballDataOk = false;
+    
+    if (footballKey) {
+      try {
+        const response = await fetch(
+          'https://v3.football.api-sports.io/status',
+          {
+            headers: {
+              'x-rapidapi-key': footballKey,
+              'x-rapidapi-host': 'v3.football.api-sports.io'
+            }
+          }
+        );
+        footballOk = response.ok;
+      } catch (e) {
+        footballOk = false;
+      }
+    }
+    
+    if (footballDataKey) {
+      try {
+        const response = await fetch(
+          'https://api.football-data.org/v4/competitions',
+          {
+            headers: { 'X-Auth-Token': footballDataKey }
+          }
+        );
+        footballDataOk = response.ok;
+      } catch (e) {
+        footballDataOk = false;
+      }
+    }
+    
+    let msg = '🧪 نتائج الاختبار:\n';
+    msg += `🔑 API-Football: ${footballOk ? '✅ يعمل' : '❌ غير متصل'}\n`;
+    msg += `🔑 Football-Data: ${footballDataOk ? '✅ يعمل' : '❌ غير متصل'}`;
+    
+    alert(msg);
+    updateApiStatus();
+  }
   
   // ============================================================
   //  تحليل المباريات باستخدام APIs مجانية
   // ============================================================
   async function fetchMatchAnalysis(team1, team2) {
+    const footballKey = getFootballApiKey();
+    const footballDataKey = getFootballDataKey();
+    
     // محاولة جلب البيانات من API-Football أولاً
-    try {
-      const response = await fetch(
-        `https://v3.football.api-sports.io/fixtures?team=${encodeURIComponent(team1)}&next=1`,
-        {
-          headers: {
-            'x-rapidapi-key': FOOTBALL_API_KEY,
-            'x-rapidapi-host': 'v3.football.api-sports.io'
+    if (footballKey) {
+      try {
+        // محاولة البحث عن الفريق
+        const team1Search = await fetch(
+          `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(team1)}`,
+          {
+            headers: {
+              'x-rapidapi-key': footballKey,
+              'x-rapidapi-host': 'v3.football.api-sports.io'
+            }
+          }
+        );
+        
+        if (team1Search.ok) {
+          const teamData = await team1Search.json();
+          if (teamData.response && teamData.response.length > 0) {
+            const teamId = teamData.response[0].team.id;
+            
+            // جلب إحصائيات الفريق
+            const statsResponse = await fetch(
+              `https://v3.football.api-sports.io/teams/statistics?team=${teamId}&league=1&season=2026`,
+              {
+                headers: {
+                  'x-rapidapi-key': footballKey,
+                  'x-rapidapi-host': 'v3.football.api-sports.io'
+                }
+              }
+            );
+            
+            if (statsResponse.ok) {
+              const statsData = await statsResponse.json();
+              if (statsData.response) {
+                return parseApiFootballStats(statsData, team1, team2);
+              }
+            }
           }
         }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.response && data.response.length > 0) {
-          return parseApiFootballData(data, team1, team2);
-        }
+      } catch (e) {
+        console.log("⚠️ API-Football غير متاح، نحاول المصدر الثاني");
       }
-    } catch (e) {
-      console.log("⚠️ API-Football غير متاح، نحاول المصدر الثاني");
     }
     
     // محاولة جلب البيانات من Football-Data.org
-    try {
-      const response = await fetch(
-        `https://api.football-data.org/v4/competitions/WC/matches`,
-        {
-          headers: { 'X-Auth-Token': FOOTBALL_DATA_KEY }
+    if (footballDataKey) {
+      try {
+        const response = await fetch(
+          `https://api.football-data.org/v4/competitions/WC/matches`,
+          {
+            headers: { 'X-Auth-Token': footballDataKey }
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.matches) {
+            return parseFootballData(data, team1, team2);
+          }
         }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.matches) {
-          return parseFootballData(data, team1, team2);
-        }
+      } catch (e) {
+        console.log("⚠️ Football-Data.org غير متاح");
       }
-    } catch (e) {
-      console.log("⚠️ Football-Data.org غير متاح");
     }
     
     // في حال فشل كل المصادر، نرجع بيانات افتراضية
     return getFallbackAnalysis(team1, team2);
   }
   
-  function parseApiFootballData(data, team1, team2) {
-    const fixture = data.response[0];
-    const stats = fixture.statistics || {};
+  function parseApiFootballStats(data, team1, team2) {
+    const stats = data.response || {};
     
     return {
       source: "API-Football",
@@ -2307,6 +2525,26 @@
     };
   }
   
+  const SUPABASE_URL = "https://szjxwhsmefqpfcebtvei.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_0um28lgPMHcjDOThT0UgDA_K-Y7Wmx3";
+  
+  let supabaseClient;
+  try {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("✅ Supabase متصل");
+  } catch (e) {
+    console.error("❌ Supabase فشل:", e);
+    supabaseClient = null;
+  }
+  
+  // ============================================================
+  //  نظام كلمة السر
+  // ============================================================
+  const SECRET_CODE = "1406";
+  let isAuthorized = false;
+  let isCompactMode = false;
+  let isModalCompact = false;
+  
   function showPasswordOverlay() {
     document.getElementById('passwordOverlay').classList.add('active');
     document.getElementById('passwordInput').value = '';
@@ -2337,6 +2575,7 @@
         document.getElementById('modalCompactBtn').classList.add('visible');
       }
       updateShareAllCount();
+      updateApiStatus();
       showCopyToast('✅ تم تفعيل لوحة الإدارة');
     } else {
       errorEl.textContent = '❌ رمز غير صحيح';
@@ -2346,77 +2585,57 @@
   }
   
   // ============================================================
-  //  خاصية تصغير لوحة المتصدرين
+  //  باقي الدوال (نفس الكود السابق مع تعديلات طفيفة)
   // ============================================================
-  function toggleCompactMode() {
-    const container = document.getElementById('leaderboardContainer');
-    const playersList = container.querySelector('.players-list');
-    const championCard = container.querySelector('.champion-card');
+  
+  // ... (جميع الدوال السابقة بنفس الشكل، مع تعديل fetchMatchAnalysis لاستخدام المفاتيح المخزنة)
+  
+  // ============================================================
+  //  دالة عرض تحليل المباراة (معدلة)
+  // ============================================================
+  async function renderMatchAnalysis(matchId, team1, team2) {
+    const container = document.getElementById(`analysis_${matchId}`);
+    if (!container) return;
     
-    if (playersList) {
-      isCompactMode = !isCompactMode;
-      playersList.classList.toggle('compact-mode');
+    container.innerHTML = `
+      <div class="analysis-loading">
+        <span class="spinner"></span>
+        جاري تحليل المباراة...
+      </div>
+    `;
+    
+    try {
+      const analysis = await fetchMatchAnalysis(team1, team2);
       
-      if (championCard) {
-        championCard.style.transform = isCompactMode ? 'scale(0.85)' : 'scale(1)';
-        championCard.style.transformOrigin = 'center center';
-        championCard.style.margin = isCompactMode ? '-10px 0' : '0';
-      }
-      
-      const btn = document.getElementById('toggleCompactBtn');
-      if (isCompactMode) {
-        btn.innerHTML = '📐 وضع التصوير (مفعل)';
-        btn.style.background = 'linear-gradient(135deg, var(--success), #27ae60)';
-        showCopyToast('📐 تم تفعيل وضع التصغير للقطة الشاشة');
+      let predictionText = '';
+      if (analysis.prediction.prediction === 'تعادل') {
+        predictionText = '🤝 تعادل';
       } else {
-        btn.innerHTML = '📐 تصغير للتصوير';
-        btn.style.background = 'linear-gradient(135deg, var(--gold), #d49a1a)';
-        showCopyToast('📐 تم إلغاء وضع التصغير');
-      }
-    } else {
-      showCopyToast('⚠️ انتظر حتى تحميل البيانات');
-    }
-  }
-  
-  function resetCompactMode() {
-    const container = document.getElementById('leaderboardContainer');
-    const playersList = container.querySelector('.players-list');
-    const championCard = container.querySelector('.champion-card');
-    
-    if (playersList) {
-      isCompactMode = false;
-      playersList.classList.remove('compact-mode');
-      
-      if (championCard) {
-        championCard.style.transform = 'scale(1)';
-        championCard.style.margin = '0';
+        predictionText = `🏆 ${getFlag(analysis.prediction.prediction)} ${analysis.prediction.prediction}`;
       }
       
-      const btn = document.getElementById('toggleCompactBtn');
-      btn.innerHTML = '📐 تصغير للتصوير';
-      btn.style.background = 'linear-gradient(135deg, var(--gold), #d49a1a)';
-      showCopyToast('🔄 تم إعادة الحجم الطبيعي');
-    }
-  }
-  
-  function toggleModalCompact() {
-    const modalContent = document.getElementById('matchPredictionsContent');
-    const btn = document.getElementById('modalCompactBtn');
-    
-    isModalCompact = !isModalCompact;
-    modalContent.classList.toggle('compact-mode');
-    
-    if (isModalCompact) {
-      btn.textContent = '📐 تكبير';
-      showCopyToast('📐 تم تصغير جدول التوقعات للتصوير');
-    } else {
-      btn.textContent = '📐 تصغير';
-      showCopyToast('📐 تم تكبير جدول التوقعات');
+      container.innerHTML = `
+        <div class="analysis-title">📊 تحليل المباراة (${analysis.source})</div>
+        <div class="analysis-stats">
+          <span class="stat-item">⚽ توقع الذكاء: <strong class="value">${predictionText}</strong> (${analysis.prediction.confidence}%)</span>
+          <span class="stat-item">🏃 الاستحواذ: <strong>${analysis.possession.home}</strong> vs <strong>${analysis.possession.away}</strong></span>
+          <span class="stat-item">🎯 التسديدات: <strong>${analysis.shots.home}</strong> vs <strong>${analysis.shots.away}</strong></span>
+          <span class="stat-item">🚩 الركنيات: <strong>${analysis.corners.home}</strong> vs <strong>${analysis.corners.away}</strong></span>
+          <span class="stat-item">⚠️ الأخطاء: <strong>${analysis.fouls.home}</strong> vs <strong>${analysis.fouls.away}</strong></span>
+        </div>
+      `;
+    } catch (e) {
+      container.innerHTML = `
+        <div class="analysis-title">📊 تحليل المباراة</div>
+        <div class="analysis-stats">
+          <span class="stat-item" style="color:var(--text-secondary);">⚠️ تعذر تحليل المباراة حالياً</span>
+        </div>
+      `;
     }
   }
   
   // ============================================================
-  //  نظام الترجمة المتقدم
+  //  دوال الترجمة والبيانات
   // ============================================================
   const nameMapping = new Map([
     ["مکزیک", "المكسيك"], ["Mexico", "المكسيك"], ["مكسيك", "المكسيك"],
@@ -2528,6 +2747,9 @@
     };
     return map[name] || "🏁";
   }
+  
+  // ============================================================
+  //  بقية الدوال (نفس الكود السابق)
   // ============================================================
   
   function getLocalPredictions() {
@@ -2910,50 +3132,6 @@
     document.body.style.overflow = '';
   }
   
-  // ============================================================
-  //  دالة عرض تحليل المباراة
-  // ============================================================
-  async function renderMatchAnalysis(matchId, team1, team2) {
-    const container = document.getElementById(`analysis_${matchId}`);
-    if (!container) return;
-    
-    container.innerHTML = `
-      <div class="analysis-loading">
-        <span class="spinner"></span>
-        جاري تحليل المباراة...
-      </div>
-    `;
-    
-    try {
-      const analysis = await fetchMatchAnalysis(team1, team2);
-      
-      let predictionText = '';
-      if (analysis.prediction.prediction === 'تعادل') {
-        predictionText = '🤝 تعادل';
-      } else {
-        predictionText = `🏆 ${getFlag(analysis.prediction.prediction)} ${analysis.prediction.prediction}`;
-      }
-      
-      container.innerHTML = `
-        <div class="analysis-title">📊 تحليل المباراة (${analysis.source})</div>
-        <div class="analysis-stats">
-          <span class="stat-item">⚽ توقع الذكاء: <strong class="value">${predictionText}</strong> (${analysis.prediction.confidence}%)</span>
-          <span class="stat-item">🏃 الاستحواذ: <strong>${analysis.possession.home}</strong> vs <strong>${analysis.possession.away}</strong></span>
-          <span class="stat-item">🎯 التسديدات: <strong>${analysis.shots.home}</strong> vs <strong>${analysis.shots.away}</strong></span>
-          <span class="stat-item">🚩 الركنيات: <strong>${analysis.corners.home}</strong> vs <strong>${analysis.corners.away}</strong></span>
-          <span class="stat-item">⚠️ الأخطاء: <strong>${analysis.fouls.home}</strong> vs <strong>${analysis.fouls.away}</strong></span>
-        </div>
-      `;
-    } catch (e) {
-      container.innerHTML = `
-        <div class="analysis-title">📊 تحليل المباراة</div>
-        <div class="analysis-stats">
-          <span class="stat-item" style="color:var(--text-secondary);">⚠️ تعذر تحليل المباراة حالياً</span>
-        </div>
-      `;
-    }
-  }
-  
   function shareAllTodayTomorrow() {
     if (!isAuthorized) {
       showPasswordOverlay();
@@ -3296,7 +3474,7 @@
   }
   
   // ============================================================
-  //  باقي الدوال
+  //  باقي الدوال (نفس الكود السابق)
   // ============================================================
   
   document.querySelectorAll('.day-btn').forEach(btn => {
@@ -4065,6 +4243,76 @@
     }
   }
   
+  // ============================================================
+  //  دالة تصغير لوحة المتصدرين
+  // ============================================================
+  function toggleCompactMode() {
+    const container = document.getElementById('leaderboardContainer');
+    const playersList = container.querySelector('.players-list');
+    const championCard = container.querySelector('.champion-card');
+    
+    if (playersList) {
+      isCompactMode = !isCompactMode;
+      playersList.classList.toggle('compact-mode');
+      
+      if (championCard) {
+        championCard.style.transform = isCompactMode ? 'scale(0.85)' : 'scale(1)';
+        championCard.style.transformOrigin = 'center center';
+        championCard.style.margin = isCompactMode ? '-10px 0' : '0';
+      }
+      
+      const btn = document.getElementById('toggleCompactBtn');
+      if (isCompactMode) {
+        btn.innerHTML = '📐 وضع التصوير (مفعل)';
+        btn.style.background = 'linear-gradient(135deg, var(--success), #27ae60)';
+        showCopyToast('📐 تم تفعيل وضع التصغير للقطة الشاشة');
+      } else {
+        btn.innerHTML = '📐 تصغير للتصوير';
+        btn.style.background = 'linear-gradient(135deg, var(--gold), #d49a1a)';
+        showCopyToast('📐 تم إلغاء وضع التصغير');
+      }
+    } else {
+      showCopyToast('⚠️ انتظر حتى تحميل البيانات');
+    }
+  }
+  
+  function resetCompactMode() {
+    const container = document.getElementById('leaderboardContainer');
+    const playersList = container.querySelector('.players-list');
+    const championCard = container.querySelector('.champion-card');
+    
+    if (playersList) {
+      isCompactMode = false;
+      playersList.classList.remove('compact-mode');
+      
+      if (championCard) {
+        championCard.style.transform = 'scale(1)';
+        championCard.style.margin = '0';
+      }
+      
+      const btn = document.getElementById('toggleCompactBtn');
+      btn.innerHTML = '📐 تصغير للتصوير';
+      btn.style.background = 'linear-gradient(135deg, var(--gold), #d49a1a)';
+      showCopyToast('🔄 تم إعادة الحجم الطبيعي');
+    }
+  }
+  
+  function toggleModalCompact() {
+    const modalContent = document.getElementById('matchPredictionsContent');
+    const btn = document.getElementById('modalCompactBtn');
+    
+    isModalCompact = !isModalCompact;
+    modalContent.classList.toggle('compact-mode');
+    
+    if (isModalCompact) {
+      btn.textContent = '📐 تكبير';
+      showCopyToast('📐 تم تصغير جدول التوقعات للتصوير');
+    } else {
+      btn.textContent = '📐 تصغير';
+      showCopyToast('📐 تم تكبير جدول التوقعات');
+    }
+  }
+  
   async function init() {
     console.log("🚀 تهيئة التطبيق...");
     initTabs();
@@ -4073,6 +4321,7 @@
     
     toggleDayFilter('upcoming');
     updateShareAllCount();
+    updateApiStatus();
     
     if (!loadFromCache()) {
       console.log("📭 لا توجد بيانات في الكاش");
@@ -4087,6 +4336,7 @@
     console.log("✅ التطبيق جاهز");
   }
   
+  // تصدير الدوال للنطاق العام
   window.openViewPredictionsModal = openViewPredictionsModal;
   window.openPlayerPredictions = openPlayerPredictions;
   window.loadPreviousGames = loadPreviousGames;
@@ -4099,6 +4349,9 @@
   window.toggleCompactMode = toggleCompactMode;
   window.resetCompactMode = resetCompactMode;
   window.toggleModalCompact = toggleModalCompact;
+  window.toggleApiSettings = toggleApiSettings;
+  window.saveApiKey = saveApiKey;
+  window.testApis = testApis;
   
   init();
 </script>
