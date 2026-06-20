@@ -63,14 +63,51 @@
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
     ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     
+    /* ============================================================
+       الهيدر المطور مع صورة الخلفية
+       ============================================================ */
     .top-bar {
       width: 100%;
-      background: linear-gradient(135deg, #0f1f3a, #1a2f4a);
-      padding: 8px 20px;
+      min-height: 120px;
+      padding: 12px 20px;
       text-align: center;
-      border-bottom: 2px solid var(--gold);
-      box-shadow: 0 2px 20px rgba(240, 180, 41, 0.1);
+      border-bottom: 3px solid var(--gold);
+      box-shadow: 0 4px 30px rgba(240, 180, 41, 0.15);
       position: relative;
+      overflow: hidden;
+      background: #0a1628;
+      /* خلفية احتياطية */
+    }
+    
+    /* صورة الخلفية للهيدر */
+    .top-bar::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('https://i.ibb.co/bRG2KtFw/IMG-3949.png') no-repeat center center;
+      background-size: contain;
+      background-position: center;
+      opacity: 0.85;
+      z-index: 0;
+      /* نضمن ظهور الكأس بالكامل */
+      background-size: contain;
+      /* تجعل الصورة تظهر كاملة */;
+    }
+    
+    /* تراكب شفاف لتحسين وضوح النص */
+    .top-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 22, 40, 0.5);
+      /* تراكب شفاف داكن */
+      z-index: 1;
     }
     
     .top-bar .top-bar-content {
@@ -81,34 +118,78 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
+      position: relative;
+      z-index: 2;
+      /* فوق الصورة والتراكب */
+      min-height: 100px;
     }
     
     .top-bar .top-bar-title {
-      font-size: 1.1rem;
+      font-size: 1.5rem;
       font-weight: 900;
-      color: var(--gold-light);
+      color: #ffffff;
       letter-spacing: 1px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 20px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
-    .top-bar .top-bar-title .icon { font-size: 1.5rem; }
+    .top-bar .top-bar-title .icon {
+      font-size: 1.8rem;
+      filter: drop-shadow(0 0 10px rgba(240, 180, 41, 0.4));
+    }
+    
+    .top-bar .top-bar-title .gold-text {
+      background: linear-gradient(135deg, #ffd700, #f0b429, #ffd700);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+    }
     
     .top-bar .top-bar-sub {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      font-weight: 400;
+      font-size: 0.85rem;
+      color: #ffffff;
+      font-weight: 600;
+      text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px 18px;
+      border-radius: 40px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: 0.5px;
+    }
+    
+    .top-bar .top-bar-sub .emoji {
+      filter: drop-shadow(0 0 6px rgba(240, 180, 41, 0.3));
     }
     
     [data-theme="light"] .top-bar {
-      background: linear-gradient(135deg, #d5dce6, #e8edf5);
-      border-bottom: 2px solid var(--gold);
+      background: #1a2332;
+      /* خلفية داكنة حتى في الوضع الفاتح للحفاظ على وضوح الصورة */;
+    }
+    
+    [data-theme="light"] .top-bar::after {
+      background: rgba(26, 35, 50, 0.4);
     }
     
     [data-theme="light"] .top-bar .top-bar-title {
-      color: #1a2332;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.25);
     }
+    
+    [data-theme="light"] .top-bar .top-bar-sub {
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    
+    /* ============================================================ */
     
     .sticky-header {
       position: sticky;
@@ -1206,8 +1287,8 @@
       padding: 6px 4px;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.03);
-      color: #f0b429;  /* لون أصفر غامق */
-      font-weight: 700; /* جعل الخط غامقاً */
+      color: #f0b429;
+      font-weight: 700;
     }
     
     .standings-table .team-cell {
@@ -1216,11 +1297,11 @@
       gap: 6px;
       justify-content: flex-start;
       font-weight: 700;
-      color: #f0b429; /* لون أصفر غامق */
+      color: #f0b429;
     }
     
-    .standings-table .team-cell span:last-child { color: #f0b429; /* لون أصفر غامق */ }
-    .standings-table td:last-child { color: #f0b429; font-weight: 800; /* لون أصفر غامق */ }
+    .standings-table .team-cell span:last-child { color: #f0b429; }
+    .standings-table td:last-child { color: #f0b429; font-weight: 800; }
     
     .predictions-grid {
       display: grid;
@@ -1342,9 +1423,6 @@
       transition: all 0.3s ease;
     }
     
-    /* ============================================================
-       نافذة التوقعات على شكل جدول مدمج
-       ============================================================ */
     .modal-content.compact-mode {
       padding: 12px !important;
       max-width: 420px !important;
@@ -1478,9 +1556,6 @@
     .modal-teams .m-team .flag { font-size: 1.4rem; }
     .modal-teams .m-vs { color: var(--text-secondary); font-size: 0.7rem; }
     
-    /* ============================================================
-       جدول التوقعات المدمج - الأسماء في اليمين واللون أصفر غامق
-       ============================================================ */
     .predictions-table-wrapper {
       overflow-x: auto;
       margin-top: 8px;
@@ -1520,7 +1595,6 @@
       font-weight: 700;
     }
     
-    /* اسم المستخدم - في أقصى اليمين (العمود الأول) ولون أصفر غامق */
     .predictions-table .user-name {
       font-weight: 800;
       color: #f0b429 !important;
@@ -1546,7 +1620,6 @@
       white-space: nowrap;
     }
     
-    /* وضع التصغير للجدول */
     .modal-content.compact-mode .predictions-table {
       font-size: 0.5rem !important;
     }
@@ -1718,11 +1791,38 @@
     
     .footer .gold-text { color: var(--gold-light); }
     
+    /* ============================================================
+       تحسينات الهيدر للشاشات الصغيرة
+       ============================================================ */
     @media (max-width: 640px) {
+      .top-bar {
+        min-height: 100px;
+        padding: 8px 12px;
+      }
+      
+      .top-bar .top-bar-content {
+        min-height: 80px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 6px;
+      }
+      
+      .top-bar .top-bar-title {
+        font-size: 1.1rem;
+        padding: 6px 14px;
+        gap: 8px;
+      }
+      
+      .top-bar .top-bar-title .icon {
+        font-size: 1.3rem;
+      }
+      
+      .top-bar .top-bar-sub {
+        font-size: 0.7rem;
+        padding: 4px 14px;
+      }
+      
       .app-container { padding: 0 8px 30px; }
-      .top-bar { padding: 6px 12px; }
-      .top-bar .top-bar-title { font-size: 0.9rem; }
-      .top-bar .top-bar-sub { font-size: 0.6rem; }
       .sticky-header { padding: 10px 14px; margin: 0 -8px 16px; border-radius: 0 0 24px 24px; }
       .sticky-header .brand h1 { font-size: 1rem; }
       .sticky-header .brand .sub { font-size: 0.5rem; }
@@ -1790,14 +1890,17 @@
 </head>
 <body>
 
+<!-- ============================================================
+     الهيدر المطور مع صورة الخلفية
+     ============================================================ -->
 <div class="top-bar">
   <div class="top-bar-content">
     <div class="top-bar-title">
       <span class="icon">🏆</span>
-      كأس العالم 2026
+      <span class="gold-text">كأس العالم 2026</span>
     </div>
     <div class="top-bar-sub">
-      ⚡ غرفة معلمي سعيد بن العاص
+      <span class="emoji">⚡</span> غرفة معلمي سعيد بن العاص
     </div>
   </div>
 </div>
@@ -2584,14 +2687,12 @@
     document.getElementById('mpFlag2').textContent = getFlag(team2);
     document.getElementById('mpResult').textContent = `النتيجة: ${homeScore} - ${awayScore}`;
     
-    // إظهار زر التصغير للمستخدم المصرح له
     if (isAuthorized) {
       document.getElementById('modalCompactBtn').classList.add('visible');
     } else {
       document.getElementById('modalCompactBtn').classList.remove('visible');
     }
     
-    // إعادة تعيين حالة التصغير
     if (isModalCompact) {
       isModalCompact = false;
       document.getElementById('matchPredictionsContent').classList.remove('compact-mode');
@@ -2628,7 +2729,6 @@
     let correctCount = 0;
     let wrongCount = 0;
     
-    // ترتيب التوقعات حسب التاريخ (الأحدث أولاً)
     const sortedPredictions = [...matchPredictions].sort((a, b) => {
       return new Date(b.created_at) - new Date(a.created_at);
     });
@@ -2656,7 +2756,6 @@
         day: 'numeric'
       }) : 'تاريخ غير معروف';
       
-      // ترتيب الأعمدة: المستخدم | التوقع | الحالة | الوقت
       rows += `
         <tr>
           <td class="user-name">${p.user_name || 'مجهول'}</td>
