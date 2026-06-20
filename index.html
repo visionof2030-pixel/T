@@ -64,19 +64,17 @@
     ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     
     /* ============================================================
-       الهيدر المطور مع صورة الخلفية
+       الهيدر المطور مع صورة الخلفية - تصميم جديد
        ============================================================ */
     .top-bar {
       width: 100%;
-      min-height: 120px;
-      padding: 12px 20px;
-      text-align: center;
+      min-height: 110px;
+      padding: 8px 20px;
       border-bottom: 3px solid var(--gold);
       box-shadow: 0 4px 30px rgba(240, 180, 41, 0.15);
       position: relative;
       overflow: hidden;
       background: #0a1628;
-      /* خلفية احتياطية */
     }
     
     /* صورة الخلفية للهيدر */
@@ -90,14 +88,11 @@
       background: url('https://i.ibb.co/bRG2KtFw/IMG-3949.png') no-repeat center center;
       background-size: contain;
       background-position: center;
-      opacity: 0.85;
+      opacity: 0.9;
       z-index: 0;
-      /* نضمن ظهور الكأس بالكامل */
-      background-size: contain;
-      /* تجعل الصورة تظهر كاملة */;
     }
     
-    /* تراكب شفاف لتحسين وضوح النص */
+    /* تراكب شفاف خفيف لتحسين وضوح النص */
     .top-bar::after {
       content: '';
       position: absolute;
@@ -105,8 +100,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(10, 22, 40, 0.5);
-      /* تراكب شفاف داكن */
+      background: rgba(10, 22, 40, 0.4);
       z-index: 1;
     }
     
@@ -120,73 +114,72 @@
       gap: 10px;
       position: relative;
       z-index: 2;
-      /* فوق الصورة والتراكب */
-      min-height: 100px;
+      min-height: 90px;
     }
     
+    /* العنصر الأول (اليمين) - كأس العالم 2026 - صغير */
     .top-bar .top-bar-title {
-      font-size: 1.5rem;
-      font-weight: 900;
+      font-size: 0.85rem;
+      font-weight: 800;
       color: #ffffff;
-      letter-spacing: 1px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.5);
-      background: rgba(0, 0, 0, 0.3);
-      padding: 8px 20px;
-      border-radius: 60px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 6px;
+      text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px 12px;
+      border-radius: 40px;
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      letter-spacing: 0.3px;
     }
     
     .top-bar .top-bar-title .icon {
-      font-size: 1.8rem;
-      filter: drop-shadow(0 0 10px rgba(240, 180, 41, 0.4));
+      font-size: 1.1rem;
+      filter: drop-shadow(0 0 8px rgba(240, 180, 41, 0.3));
     }
     
     .top-bar .top-bar-title .gold-text {
-      background: linear-gradient(135deg, #ffd700, #f0b429, #ffd700);
+      background: linear-gradient(135deg, #ffd700, #f0b429);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
       text-shadow: none;
     }
     
+    /* العنصر الثاني (اليسار) - غرفة معلمي سعيد بن العاص */
     .top-bar .top-bar-sub {
       font-size: 0.85rem;
       color: #ffffff;
-      font-weight: 600;
+      font-weight: 700;
       text-shadow: 0 2px 15px rgba(0, 0, 0, 0.9);
-      background: rgba(0, 0, 0, 0.35);
-      padding: 6px 18px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px 16px;
       border-radius: 40px;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(2px);
       border: 1px solid rgba(255, 255, 255, 0.06);
-      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.3px;
     }
     
     .top-bar .top-bar-sub .emoji {
-      filter: drop-shadow(0 0 6px rgba(240, 180, 41, 0.3));
+      filter: drop-shadow(0 0 6px rgba(240, 180, 41, 0.2));
     }
     
     [data-theme="light"] .top-bar {
       background: #1a2332;
-      /* خلفية داكنة حتى في الوضع الفاتح للحفاظ على وضوح الصورة */;
     }
     
     [data-theme="light"] .top-bar::after {
-      background: rgba(26, 35, 50, 0.4);
+      background: rgba(26, 35, 50, 0.35);
     }
     
-    [data-theme="light"] .top-bar .top-bar-title {
-      color: #ffffff;
-      background: rgba(0, 0, 0, 0.25);
-    }
-    
+    [data-theme="light"] .top-bar .top-bar-title,
     [data-theme="light"] .top-bar .top-bar-sub {
       color: #ffffff;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.2);
     }
     
     /* ============================================================ */
@@ -1791,35 +1784,31 @@
     
     .footer .gold-text { color: var(--gold-light); }
     
-    /* ============================================================
-       تحسينات الهيدر للشاشات الصغيرة
-       ============================================================ */
     @media (max-width: 640px) {
       .top-bar {
-        min-height: 100px;
-        padding: 8px 12px;
+        min-height: 90px;
+        padding: 6px 12px;
       }
       
       .top-bar .top-bar-content {
-        min-height: 80px;
-        flex-direction: column;
-        justify-content: center;
+        min-height: 70px;
+        flex-wrap: wrap;
         gap: 6px;
       }
       
       .top-bar .top-bar-title {
-        font-size: 1.1rem;
-        padding: 6px 14px;
-        gap: 8px;
+        font-size: 0.7rem;
+        padding: 3px 10px;
+        gap: 4px;
       }
       
       .top-bar .top-bar-title .icon {
-        font-size: 1.3rem;
+        font-size: 0.9rem;
       }
       
       .top-bar .top-bar-sub {
         font-size: 0.7rem;
-        padding: 4px 14px;
+        padding: 3px 12px;
       }
       
       .app-container { padding: 0 8px 30px; }
@@ -1891,14 +1880,16 @@
 <body>
 
 <!-- ============================================================
-     الهيدر المطور مع صورة الخلفية
+     الهيدر المطور مع صورة الخلفية - تصميم جديد
      ============================================================ -->
 <div class="top-bar">
   <div class="top-bar-content">
+    <!-- العنصر الأول: كأس العالم 2026 (في أقصى اليمين) -->
     <div class="top-bar-title">
       <span class="icon">🏆</span>
       <span class="gold-text">كأس العالم 2026</span>
     </div>
+    <!-- العنصر الثاني: غرفة معلمي سعيد بن العاص (في أقصى اليسار) -->
     <div class="top-bar-sub">
       <span class="emoji">⚡</span> غرفة معلمي سعيد بن العاص
     </div>
