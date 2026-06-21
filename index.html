@@ -6,7 +6,7 @@
   <title>🏆 كأس العالم 2026</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    /* ===== الأنماط العامة (كما هي سابقاً) ===== */
+    /* ===== الأنماط العامة ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
       --primary: #0a1628;
@@ -57,6 +57,9 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); border-radius: 10px; }
     ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* ===== الكلاس الجديد: إخفاء عناصر الإدارة ===== */
+    .admin-only { display: none; }
 
     /* ===== الهيدر ===== */
     .top-bar {
@@ -532,7 +535,7 @@
     .scorers-table .goals { font-weight: 800; color: var(--gold); font-size: 1.1rem; }
     .scorers-table tr:last-child td { border-bottom: none; }
 
-    /* ===== المخطط (Bracket) - نسخة محسنة ===== */
+    /* ===== المخطط (Bracket) - نسخة محسنة بأسلوب الملف الثاني ===== */
     .bracket-container {
       display: flex;
       flex-direction: column;
@@ -911,7 +914,8 @@
       <button class="tab-btn" data-tab="standings">📊 ترتيب المجموعات</button>
       <button class="tab-btn" data-tab="scorers">🏅 الهدافين</button>
       <button class="tab-btn" data-tab="stats">📊 إحصائيات الفرق</button>
-      <button class="tab-btn" data-tab="bracket">🏆 المخطط</button>
+      <!-- زر المخطط مخفي للمستخدم العادي، يظهر فقط بعد كلمة السر -->
+      <button class="tab-btn admin-only" data-tab="bracket">🏆 المخطط</button>
       <button class="tab-btn" data-tab="predictions">🗳️ جميع التوقعات</button>
     </div>
     <div class="day-filter-tabs visible" id="dayFilterTabs">
@@ -953,8 +957,8 @@
     <div id="teamStatsContainer"><div class="empty-state"><span class="icon">⏳</span> جاري حساب الإحصائيات...</div></div>
   </div>
   
-  <!-- المخطط - نسخة محسنة -->
-  <div id="bracketTab" class="tab-content">
+  <!-- المخطط - مخفي افتراضياً -->
+  <div id="bracketTab" class="tab-content admin-only">
     <div class="section-title">🏆 مخطط البطولة</div>
     <div id="bracketContainer"><div class="empty-state"><span class="icon">⏳</span> جاري تحميل المخطط...</div></div>
   </div>
@@ -1099,14 +1103,13 @@
   let isModalCompact = false;
   let previousGamesData = [];
   let allGames = [];
-  let openfootballMatches = []; // بيانات المصدر الجديد
   let scorersDict = {};
   let playerTeamMap = {};
   let allPredictionsCache = [];
   let currentMatchId = null, currentTeam1 = '', currentTeam2 = '', currentTimeISO = '';
   let currentDayFilter = 'all';
 
-  // بيانات الملاعب (احتياطي)
+  // بيانات الملاعب
   const stadiums = {
     "1": "ملعب آزتيكا (المكسيك)",
     "2": "ملعب سيول (كوريا)",
@@ -1310,12 +1313,7 @@
     ["باراغواي","باراغواي"]
   ]);
 
-  const groupLetters = {
-    'A': 'أ', 'B': 'ب', 'C': 'ج', 'D': 'د', 'E': 'هـ', 'F': 'و', 'G': 'ز', 'H': 'ح', 'I': 'ط', 'J': 'ي', 'K': 'ك', 'L': 'ل'
-  };
-
   function normalizeName(str) { if (!str) return ""; str = str.normalize("NFD").replace(/[\u064B-\u065F]/g, ""); str = str.replace(/[ى]/g,"ا").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/[ک]/g,"ك").replace(/[ی]/g,"ي").replace(/[ي]/g,"ي").replace(/[ئ]/g,"ي").replace(/[ؤ]/g,"و").replace(/[إ]/g,"ا").replace(/[آ]/g,"ا"); return str.trim().replace(/\s+/g,' '); }
-  
   function translateToArabic(raw) {
     if (!raw) return "";
     let trimmed = raw.trim();
@@ -1336,36 +1334,6 @@
     console.warn(`⚠️ لم يتم العثور على ترجمة لـ: "${raw}"`);
     return trimmed;
   }
-
-  function translateBracketTeamName(name) {
-    if (!name) return name;
-    let match = name.match(/^Winner\s+Group\s+([A-L])$/i);
-    if (match) {
-      let groupLetter = match[1].toUpperCase();
-      let arabicLetter = groupLetters[groupLetter] || groupLetter;
-      return `متصدر المجموعة (${arabicLetter})`;
-    }
-    match = name.match(/^Runner-up\s+Group\s+([A-L])$/i);
-    if (match) {
-      let groupLetter = match[1].toUpperCase();
-      let arabicLetter = groupLetters[groupLetter] || groupLetter;
-      return `وصيف المجموعة (${arabicLetter})`;
-    }
-    match = name.match(/^3rd\s+Group\s+([A-L\/]+)$/i);
-    if (match) {
-      let groups = match[1].toUpperCase().split('/');
-      let arabicGroups = groups.map(g => groupLetters[g] || g).join('/');
-      return `ثالث المجموعة (${arabicGroups})`;
-    }
-    match = name.match(/^Group\s+([A-L])$/i);
-    if (match) {
-      let groupLetter = match[1].toUpperCase();
-      let arabicLetter = groupLetters[groupLetter] || groupLetter;
-      return `المجموعة (${arabicLetter})`;
-    }
-    return translateToArabic(name);
-  }
-
   function getFlag(name) {
     const map = {
       "المكسيك":"🇲🇽","جنوب أفريقيا":"🇿🇦","الأرجنتين":"🇦🇷","الجزائر":"🇩🇿","النمسا":"🇦🇹","الأردن":"🇯🇴","البرتغال":"🇵🇹","الكونغو الديمقراطية":"🇨🇩","كوريا الجنوبية":"🇰🇷","التشيك":"🇨🇿","كندا":"🇨🇦","البوسنة والهرسك":"🇧🇦","أمريكا":"🇺🇸","العراق":"🇮🇶","سويسرا":"🇨🇭","قطر":"🇶🇦","البرازيل":"🇧🇷","المغرب":"🇲🇦","هايتي":"🇭🇹","إسكتلندا":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","أستراليا":"🇦🇺","تركيا":"🇹🇷","ألمانيا":"🇩🇪","كوراساو":"🇨🇼","اليابان":"🇯🇵","هولندا":"🇳🇱","الإكوادور":"🇪🇨","ساحل العاج":"🇨🇮","السويد":"🇸🇪","تونس":"🇹🇳","إسبانيا":"🇪🇸","الرأس الأخضر":"🇨🇻","مصر":"🇪🇬","بلجيكا":"🇧🇪","السعودية":"🇸🇦","أوروغواي":"🇺🇾","إيران":"🇮🇷","نيوزيلندا":"🇳🇿","السنغال":"🇸🇳","فرنسا":"🇫🇷","النرويج":"🇳🇴","إنجلترا":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","كرواتيا":"🇭🇷","بنما":"🇵🇦","كولومبيا":"🇨🇴","أوزبكستان":"🇺🇿","غانا":"🇬🇭","باراغواي":"🇵🇾"
@@ -1543,32 +1511,8 @@
   }
 
   // ============================================================
-  //  دوال عرض المباريات (مع إضافة اسم الملعب من openfootball)
+  //  دوال عرض المباريات
   // ============================================================
-  function getGroundForMatch(team1, team2, timeISO) {
-    // محاولة مطابقة المباراة في بيانات openfootball
-    if (!openfootballMatches || !openfootballMatches.length) return null;
-    const t1 = translateToArabic(team1);
-    const t2 = translateToArabic(team2);
-    // البحث عن مباراة بنفس الفريقين (قد يكون الترتيب معكوساً)
-    let match = openfootballMatches.find(m => {
-      const h = translateToArabic(m.team1 || '');
-      const a = translateToArabic(m.team2 || '');
-      return (h === t1 && a === t2) || (h === t2 && a === t1);
-    });
-    if (match && match.ground) return match.ground;
-    // محاولة مطابقة بالوقت إذا كان التاريخ متاحاً
-    if (timeISO) {
-      const dateStr = getDateFmt(timeISO);
-      match = openfootballMatches.find(m => {
-        if (!m.date) return false;
-        return m.date.includes(dateStr) || dateStr.includes(m.date);
-      });
-      if (match && match.ground) return match.ground;
-    }
-    return null;
-  }
-
   function renderMatchCard(m, isUpcoming) {
     const st = getMatchStatus(m);
     const isLive = st.live;
@@ -1604,18 +1548,14 @@
     const groupName = Object.keys(finalGroups).find(g => finalGroups[g].includes(m.team1)) || '';
     const isToday = isMatchToday(m.timeISO);
     const dayLabel = isToday ? '📌 اليوم' : (isMatchTodayOrTomorrow(m.timeISO) ? '📌 غداً' : '');
-    // جلب اسم الملعب من المصدر الجديد
-    let ground = getGroundForMatch(m.team1, m.team2, m.timeISO);
-    if (!ground) {
-      // محاولة من API السابق
-      const matchFromAPI = allGames.find(g => {
-        const home = translateToArabic(g.home_team_name_fa || g.home_team_name_en || '');
-        const away = translateToArabic(g.away_team_name_fa || g.away_team_name_en || '');
-        return (home === m.team1 && away === m.team2) || (home === m.team2 && away === m.team1);
-      });
-      if (matchFromAPI && matchFromAPI.stadium_id) {
-        ground = getStadiumName(matchFromAPI.stadium_id);
-      }
+    let stadiumName = '';
+    const matchFromAPI = allGames.find(g => {
+      const home = translateToArabic(g.home_team_name_fa || g.home_team_name_en || '');
+      const away = translateToArabic(g.away_team_name_fa || g.away_team_name_en || '');
+      return (home === m.team1 && away === m.team2) || (home === m.team2 && away === m.team1);
+    });
+    if (matchFromAPI && matchFromAPI.stadium_id) {
+      stadiumName = getStadiumName(matchFromAPI.stadium_id);
     }
     const onclickAttr = (isFinished && matchResult) ? `onclick="openMatchPredictions('${matchId}', '${m.team1}', '${m.team2}', ${homeScore}, ${awayScore})"` : '';
     return `
@@ -1634,7 +1574,7 @@
           <span class="tag">${getDay(m.timeISO)}</span>
           <span class="tag">${getDateTimeDisplay(m.timeISO)}</span>
           ${dayLabel ? `<span class="tag" style="color:var(--gold-light);">${dayLabel}</span>` : ''}
-          ${ground ? `<span class="tag stadium-tag">🏟️ ${ground}</span>` : ''}
+          ${stadiumName ? `<span class="tag stadium-tag">🏟️ ${stadiumName}</span>` : ''}
         </div>
         ${isUpcoming ? `
           <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
@@ -1671,33 +1611,32 @@
     if (isModalCompact) { isModalCompact = false; document.getElementById('matchPredictionsContent').classList.remove('compact-mode'); document.getElementById('modalCompactBtn').textContent = '📐 تصغير'; }
     
     const scorersDiv = document.getElementById('mpScorersDetail');
-    // استخدم openfootballMatches للحصول على الهدافين
-    let scorersHtml = '';
-    let matchOF = openfootballMatches.find(m => {
-      const h = translateToArabic(m.team1 || '');
-      const a = translateToArabic(m.team2 || '');
-      return (h === team1 && a === team2) || (h === team2 && a === team1);
+    const matchFromAPI = allGames.find(g => {
+      const home = translateToArabic(g.home_team_name_fa || g.home_team_name_en || '');
+      const away = translateToArabic(g.away_team_name_fa || g.away_team_name_en || '');
+      return (home === team1 && away === team2) || (home === team2 && away === team1);
     });
-    if (matchOF) {
-      const goals = [...(matchOF.goals1 || []), ...(matchOF.goals2 || [])];
-      if (goals.length) {
+    let scorersHtml = '';
+    if (matchFromAPI) {
+      const homeScorers = parseScorersWithMinutes(matchFromAPI.home_scorers);
+      const awayScorers = parseScorersWithMinutes(matchFromAPI.away_scorers);
+      if (homeScorers.length || awayScorers.length) {
         scorersHtml += `<div style="margin:4px 0;"><strong>⚽ الأهداف:</strong></div>`;
-        // تجميع حسب الفريق (غير دقيق لكن نعرض الكل)
-        if (matchOF.goals1 && matchOF.goals1.length) {
+        if (homeScorers.length) {
           scorersHtml += `<div>${getFlag(team1)} <strong>${team1}</strong>: `;
-          scorersHtml += matchOF.goals1.map(g => {
-            let minute = g.minute ? ` ${g.minute}'` : '';
-            let name = g.name || 'لاعب';
-            return `<span class="goal-item"><span class="minute">${minute}</span> ${name}</span>`;
+          scorersHtml += homeScorers.map(s => {
+            let typeLabel = '';
+            if (s.type) typeLabel = ` (${s.type})`;
+            return `<span class="goal-item"><span class="minute">${s.minute}</span> ${s.name}${typeLabel}</span>`;
           }).join(' ');
           scorersHtml += `</div>`;
         }
-        if (matchOF.goals2 && matchOF.goals2.length) {
+        if (awayScorers.length) {
           scorersHtml += `<div>${getFlag(team2)} <strong>${team2}</strong>: `;
-          scorersHtml += matchOF.goals2.map(g => {
-            let minute = g.minute ? ` ${g.minute}'` : '';
-            let name = g.name || 'لاعب';
-            return `<span class="goal-item"><span class="minute">${minute}</span> ${name}</span>`;
+          scorersHtml += awayScorers.map(s => {
+            let typeLabel = '';
+            if (s.type) typeLabel = ` (${s.type})`;
+            return `<span class="goal-item"><span class="minute">${s.minute}</span> ${s.name}${typeLabel}</span>`;
           }).join(' ');
           scorersHtml += `</div>`;
         }
@@ -1790,12 +1729,11 @@
   }
 
   // ============================================================
-  //  مخطط البطولة - نسخة محسنة مع ترجمة العناوين الخاصة وحذف التكرار
+  //  مخطط البطولة - نسخة محسنة مترجمة بالكامل للعربية
   // ============================================================
   function renderBracket() {
     const container = document.getElementById('bracketContainer');
     
-    // تجميع مباريات المخطط من جميع البيانات المتاحة
     const bracketGames = allGames.filter(g => 
       g.group && ['R32','R16','QF','SF','3RD','FINAL'].includes(g.group) ||
       g.type === 'final' || g.type === 'third' || g.group === 'Final' ||
@@ -1809,36 +1747,26 @@
 
     const roundOrder = ['R32', 'R16', 'QF', 'SF', '3RD', 'FINAL'];
     const roundNames = {
-      'R32': { ar: 'دور الـ 32', icon: '🔵' },
-      'R16': { ar: 'دور الـ 16', icon: '🟢' },
+      'R32': { ar: 'دور 32', icon: '🔵' },
+      'R16': { ar: 'دور 16', icon: '🟢' },
       'QF': { ar: 'ربع النهائي', icon: '🟡' },
       'SF': { ar: 'نصف النهائي', icon: '🟠' },
-      '3RD': { ar: 'المركز الثالث', icon: '🥉' },
+      '3RD': { ar: 'مباراة المركز الثالث', icon: '🥉' },
       'FINAL': { ar: 'النهائي', icon: '🏆' },
       'النهائي': { ar: 'النهائي', icon: '🏆' }
     };
 
     const roundsMap = {};
-    const usedIds = new Set();
     for (let r of roundOrder) {
-      roundsMap[r] = [];
+      roundsMap[r] = bracketGames.filter(g => g.group === r);
     }
-    
-    for (let match of bracketGames) {
-      const id = match._id || match.id;
-      if (id && usedIds.has(id)) continue;
-      
-      let roundKey = match.group;
-      if (!roundKey || !roundOrder.includes(roundKey)) {
-        if (match.type === 'final' || match.round === 'final' || match.group === 'FINAL') roundKey = 'FINAL';
-        else if (match.type === 'third' || match.round === 'third' || match.group === '3RD') roundKey = '3RD';
-        else continue;
-      }
-      
-      if (roundKey && roundOrder.includes(roundKey)) {
-        if (id) usedIds.add(id);
-        roundsMap[roundKey].push(match);
-      }
+    const finalMatches = bracketGames.filter(g => g.type === 'final' || g.group === 'FINAL' || g.round === 'final');
+    if (finalMatches.length) {
+      roundsMap['FINAL'] = [...(roundsMap['FINAL'] || []), ...finalMatches];
+    }
+    const thirdMatches = bracketGames.filter(g => g.type === 'third' || g.group === '3RD' || g.round === 'third');
+    if (thirdMatches.length) {
+      roundsMap['3RD'] = [...(roundsMap['3RD'] || []), ...thirdMatches];
     }
 
     let html = `<div class="bracket-container">`;
@@ -1862,17 +1790,17 @@
         let homeName = match.home_team_name_fa || match.home_team_name_en || match.home_team_label || '?';
         let awayName = match.away_team_name_fa || match.away_team_name_en || match.away_team_label || '?';
         
-        let homeDisplay = translateBracketTeamName(homeName);
-        let awayDisplay = translateBracketTeamName(awayName);
-        if (homeDisplay === homeName && !homeName.includes('متصدر') && !homeName.includes('وصيف') && !homeName.includes('ثالث')) {
-          homeDisplay = translateToArabic(homeName);
-        }
-        if (awayDisplay === awayName && !awayName.includes('متصدر') && !awayName.includes('وصيف') && !awayName.includes('ثالث')) {
-          awayDisplay = translateToArabic(awayName);
-        }
-
-        const flag1 = getFlag(homeDisplay) || '🏁';
-        const flag2 = getFlag(awayDisplay) || '🏁';
+        const isTBD = (homeName === '?' || homeName === '' || homeName.includes('الفائز') || homeName.includes('winner'));
+        const isTBDAway = (awayName === '?' || awayName === '' || awayName.includes('الفائز') || awayName.includes('winner'));
+        
+        let homeDisplay = isTBD ? homeName : translateToArabic(homeName);
+        let awayDisplay = isTBDAway ? awayName : translateToArabic(awayName);
+        
+        if (!homeDisplay || homeDisplay === homeName) homeDisplay = homeName;
+        if (!awayDisplay || awayDisplay === awayName) awayDisplay = awayName;
+        
+        const flag1 = (homeDisplay && !isTBD) ? getFlag(homeDisplay) : '🏁';
+        const flag2 = (awayDisplay && !isTBDAway) ? getFlag(awayDisplay) : '🏁';
 
         let statusHtml = '';
         let statusClass = 'pending-status';
@@ -1941,17 +1869,15 @@
 
     let homeName = match.home_team_name_fa || match.home_team_name_en || match.home_team_label || '?';
     let awayName = match.away_team_name_fa || match.away_team_name_en || match.away_team_label || '?';
-    let homeDisplay = translateBracketTeamName(homeName);
-    let awayDisplay = translateBracketTeamName(awayName);
-    if (homeDisplay === homeName && !homeName.includes('متصدر') && !homeName.includes('وصيف') && !homeName.includes('ثالث')) {
-      homeDisplay = translateToArabic(homeName);
-    }
-    if (awayDisplay === awayName && !awayName.includes('متصدر') && !awayName.includes('وصيف') && !awayName.includes('ثالث')) {
-      awayDisplay = translateToArabic(awayName);
-    }
+    const isTBD = (homeName === '?' || homeName === '' || homeName.includes('الفائز') || homeName.includes('winner'));
+    const isTBDAway = (awayName === '?' || awayName === '' || awayName.includes('الفائز') || awayName.includes('winner'));
+    let homeDisplay = isTBD ? homeName : translateToArabic(homeName);
+    let awayDisplay = isTBDAway ? awayName : translateToArabic(awayName);
+    if (!homeDisplay || homeDisplay === homeName) homeDisplay = homeName;
+    if (!awayDisplay || awayDisplay === awayName) awayDisplay = awayName;
     
-    const flag1 = getFlag(homeDisplay) || '🏁';
-    const flag2 = getFlag(awayDisplay) || '🏁';
+    const flag1 = (homeDisplay && !isTBD) ? getFlag(homeDisplay) : '🏁';
+    const flag2 = (awayDisplay && !isTBDAway) ? getFlag(awayDisplay) : '🏁';
     
     const score = match.finished === "TRUE" ? `${match.home_score || 0} - ${match.away_score || 0}` : 'لم تلعب بعد';
     const dateStr = match.local_date || match.time || match.date || 'تاريخ غير معروف';
@@ -1990,26 +1916,32 @@
   document.getElementById('bracketMatchModal').addEventListener('click', function(e) { if (e.target === this) closeBracketModal(); });
 
   // ============================================================
-  //  دوال عرض قائمة الهدافين (تعتمد على openfootball)
+  //  دوال عرض قائمة الهدافين (محسّنة لتطبيع الأسماء)
   // ============================================================
   function updateScorers() {
     scorersDict = {};
     playerTeamMap = {};
-    // استخدام openfootballMatches
-    for (let match of openfootballMatches) {
-      const homeTeam = translateToArabic(match.team1 || '');
-      const awayTeam = translateToArabic(match.team2 || '');
-      const goals = [...(match.goals1 || []), ...(match.goals2 || [])];
-      for (let g of goals) {
-        if (!g.name) continue;
-        let normalizedName = normalizeName(g.name);
-        if (!scorersDict[normalizedName]) scorersDict[normalizedName] = 0;
-        scorersDict[normalizedName]++;
-        // تحديد الفريق بناءً على وجود اللاعب في goals1 أو goals2
-        let team = '';
-        if (match.goals1 && match.goals1.some(gg => gg.name === g.name)) team = homeTeam;
-        else if (match.goals2 && match.goals2.some(gg => gg.name === g.name)) team = awayTeam;
-        if (team && !playerTeamMap[normalizedName]) playerTeamMap[normalizedName] = team;
+    const finishedGames = allGames.filter(g => g.finished === "TRUE");
+    for (let game of finishedGames) {
+      const homeTeam = translateToArabic(game.home_team_name_fa || game.home_team_name_en || '');
+      const awayTeam = translateToArabic(game.away_team_name_fa || game.away_team_name_en || '');
+      if (game.home_scorers && game.home_scorers !== "null") {
+        const scorers = parseScorersWithMinutes(game.home_scorers);
+        for (let s of scorers) {
+          let normalizedName = normalizeName(s.name);
+          if (!scorersDict[normalizedName]) scorersDict[normalizedName] = 0;
+          scorersDict[normalizedName]++;
+          if (!playerTeamMap[normalizedName]) playerTeamMap[normalizedName] = homeTeam;
+        }
+      }
+      if (game.away_scorers && game.away_scorers !== "null") {
+        const scorers = parseScorersWithMinutes(game.away_scorers);
+        for (let s of scorers) {
+          let normalizedName = normalizeName(s.name);
+          if (!scorersDict[normalizedName]) scorersDict[normalizedName] = 0;
+          scorersDict[normalizedName]++;
+          if (!playerTeamMap[normalizedName]) playerTeamMap[normalizedName] = awayTeam;
+        }
       }
     }
   }
@@ -2033,30 +1965,9 @@
   }
 
   // ============================================================
-  //  دوال تحميل البيانات من API + openfootball
+  //  دوال تحميل البيانات من API
   // ============================================================
   let isLoadingPrevious = false;
-  let isOpenfootballLoaded = false;
-
-  async function fetchOpenfootballData() {
-    if (isOpenfootballLoaded) return;
-    try {
-      const res = await fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data && data.matches) {
-        openfootballMatches = data.matches;
-        console.log(`✅ تحميل openfootball: ${openfootballMatches.length} مباراة`);
-        isOpenfootballLoaded = true;
-        // تحديث الهدافين
-        updateScorers();
-        renderScorers();
-      }
-    } catch(e) {
-      console.error('❌ فشل تحميل openfootball:', e);
-    }
-  }
-
   function loadFromCache() { try { const cached = localStorage.getItem('previousGamesData'); if (cached) { const data = JSON.parse(cached); if (data && data.length) { previousGamesData = data; return true; } } } catch(e){} return false; }
   function saveToCache(data) { try { localStorage.setItem('previousGamesData', JSON.stringify(data)); } catch(e){} }
 
@@ -2070,7 +1981,14 @@
       const data = await response.json();
       if (!data?.games) throw new Error('تنسيق غير صحيح');
       allGames = data.games;
+      
       const finished = allGames.filter(g => g.finished === "TRUE");
+      finished.sort((a, b) => {
+        const dateA = new Date(a.local_date.replace(/\//g, '-'));
+        const dateB = new Date(b.local_date.replace(/\//g, '-'));
+        return dateB - dateA;
+      });
+      
       const newData = finished.map(game => {
         const homeAr = translateToArabic(game.home_team_name_fa || game.home_team_name_en || '');
         const awayAr = translateToArabic(game.away_team_name_fa || game.away_team_name_en || '');
@@ -2096,8 +2014,8 @@
       saveToCache(newData);
       renderPreviousGamesFiltered();
       calculateStandings();
-      // لا نقوم بتحديث الهدافين من هنا لأننا نعتمد على openfootball
-      // لكن نحدث البيانات الأخرى
+      updateScorers();
+      renderScorers();
       renderTeamStats();
       renderBracket();
       await renderLeaderboard();
@@ -2123,10 +2041,7 @@
       container.innerHTML = `<div class="empty-state"><span class="icon">${message === '⏳ جاري التحميل...' ? '⏳' : '📭'}</span> ${message}</div>`;
       return;
     }
-    container.innerHTML = filtered.map(g => {
-      // محاولة جلب اسم الملعب من openfootball
-      let ground = getGroundForMatch(g.homeAr, g.awayAr, null);
-      return `
+    container.innerHTML = filtered.map(g => `
       <div class="match-card finished-match" onclick="openPreviousMatchPredictions('${g.homeAr}', '${g.awayAr}', ${g.homeScore}, ${g.awayScore})">
         <div class="match-teams">
           <div class="match-team"><span class="flag">${getFlag(g.homeAr)}</span> ${g.homeAr}</div>
@@ -2137,10 +2052,9 @@
           <span class="tag">${g.dayName || 'تاريخ'}</span>
           <span class="tag">${g.formattedDate || ''} ${g.timeMatch || ''}</span>
           <span class="tag finished-tag">✅ انتهت - اضغط لعرض التوقعات</span>
-          ${ground ? `<span class="tag stadium-tag">🏟️ ${ground}</span>` : ''}
         </div>
       </div>
-    `}).join('');
+    `).join('');
   }
 
   function openPreviousMatchPredictions(team1, team2, homeScore, awayScore) {
@@ -2466,6 +2380,8 @@
       hidePasswordOverlay();
       document.getElementById('shareAllContainer').classList.add('visible');
       document.getElementById('adminControls').classList.add('visible');
+      // إظهار عناصر الإدارة المخفية (المخطط وغيره)
+      document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
       if (document.getElementById('matchPredictionsModal').classList.contains('active')) { document.getElementById('modalCompactBtn').classList.add('visible'); }
       updateShareAllCount();
       showCopyToast('✅ تم تفعيل لوحة الإدارة');
@@ -2506,17 +2422,31 @@
   // ============================================================
   //  التهيئة
   // ============================================================
+  let isRefreshing = false;
+  
+  async function fullRefresh() {
+    if (isRefreshing) return;
+    isRefreshing = true;
+    try {
+      await loadPreviousGames();
+      renderUpcoming();
+      await renderLeaderboard();
+      await renderAllPredictions();
+      renderScorers();
+      renderTeamStats();
+      renderBracket();
+      calculateStandings();
+    } catch (e) {
+      console.warn("⚠️ تحديث دوري فاشل:", e);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
   function startAutoUpdate() {
     setInterval(renderUpcoming, 1000);
-    setInterval(async () => {
-      const activeTab = document.querySelector('.tab-btn.active')?.dataset.tab;
-      if (activeTab === 'previous') loadPreviousGames();
-      if (activeTab === 'standings' && previousGamesData.length) calculateStandings();
-      if (activeTab === 'scorers') renderScorers();
-      if (activeTab === 'stats') renderTeamStats();
-      if (activeTab === 'bracket') renderBracket();
-      if (activeTab === 'predictions') await renderAllPredictions();
-      await renderLeaderboard();
+    setInterval(fullRefresh, 5000);
+    setInterval(() => {
       updateShareAllCount();
     }, 60000);
   }
@@ -2708,8 +2638,6 @@
 
   async function init() {
     console.log("🚀 تهيئة التطبيق...");
-    // تحميل بيانات openfootball أولاً
-    await fetchOpenfootballData();
     initTabs();
     renderUpcoming();
     startAutoUpdate();
